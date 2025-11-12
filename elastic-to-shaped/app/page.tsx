@@ -17,11 +17,66 @@ const DEFAULT_INPUT = `{
     "bool": {
       "must": [
         {
-          "match": {
-            "description": {
-              "query": "Blue jeans for summer",
-              "operator": "and"
-            }
+          "bool": {
+            "should": [
+              {
+                "multi_match": {
+                  "query": "Blue jeans for summer",
+                  "fields": [
+                    "name^3",
+                    "description^2",
+                    "tags^1.5",
+                    "brand^1.2",
+                    "category^1.1"
+                  ],
+                  "type": "best_fields",
+                  "operator": "and",
+                  "minimum_should_match": "75%"
+                }
+              },
+              {
+                "match_phrase": {
+                  "description": {
+                    "query": "Blue jeans for summer",
+                    "slop": 2,
+                    "boost": 1.5
+                  }
+                }
+              },
+              {
+                "match_phrase_prefix": {
+                  "name": {
+                    "query": "Blue jeans",
+                    "max_expansions": 50,
+                    "boost": 1.2
+                  }
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "bool": {
+            "must_not": [
+              {
+                "term": {
+                  "discontinued": true
+                }
+              },
+              {
+                "term": {
+                  "hidden": true
+                }
+              },
+              {
+                "range": {
+                  "stock_quantity": {
+                    "lte": 0
+                  }
+                }
+              }
+            ]
           }
         }
       ],
@@ -31,6 +86,22 @@ const DEFAULT_INPUT = `{
             "tags": {
               "value": "featured",
               "boost": 2.0
+            }
+          }
+        },
+        {
+          "term": {
+            "tags": {
+              "value": "new_arrival",
+              "boost": 1.8
+            }
+          }
+        },
+        {
+          "term": {
+            "tags": {
+              "value": "bestseller",
+              "boost": 1.6
             }
           }
         },
@@ -56,6 +127,127 @@ const DEFAULT_INPUT = `{
             "category": ["jeans", "pants", "bottoms"],
             "boost": 1.2
           }
+        },
+        {
+          "range": {
+            "rating": {
+              "gte": 4.5,
+              "boost": 1.4
+            }
+          }
+        },
+        {
+          "range": {
+            "review_count": {
+              "gte": 50,
+              "boost": 1.1
+            }
+          }
+        },
+        {
+          "term": {
+            "on_sale": {
+              "value": true,
+              "boost": 1.3
+            }
+          }
+        },
+        {
+          "range": {
+            "discount_percentage": {
+              "gte": 20,
+              "boost": 1.25
+            }
+          }
+        },
+        {
+          "terms": {
+            "material": ["cotton", "denim", "organic"],
+            "boost": 1.15
+          }
+        },
+        {
+          "term": {
+            "sustainable": {
+              "value": true,
+              "boost": 1.1
+            }
+          }
+        },
+        {
+          "term": {
+            "free_shipping": {
+              "value": true,
+              "boost": 1.2
+            }
+          }
+        },
+        {
+          "range": {
+            "days_since_release": {
+              "lte": 30,
+              "boost": 1.3
+            }
+          }
+        },
+        {
+          "nested": {
+            "path": "variants",
+            "query": {
+              "bool": {
+                "should": [
+                  {
+                    "term": {
+                      "variants.color": {
+                        "value": "blue",
+                        "boost": 1.2
+                      }
+                    }
+                  },
+                  {
+                    "term": {
+                      "variants.size": {
+                        "value": "medium",
+                        "boost": 1.1
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "boost": 1.15
+          }
+        },
+        {
+          "function_score": {
+            "query": {
+              "match_all": {}
+            },
+            "functions": [
+              {
+                "gauss": {
+                  "price": {
+                    "origin": 50,
+                    "scale": 30,
+                    "decay": 0.5
+                  }
+                },
+                "weight": 1.1
+              },
+              {
+                "gauss": {
+                  "rating": {
+                    "origin": 5.0,
+                    "scale": 1.0,
+                    "decay": 0.3
+                  }
+                },
+                "weight": 1.2
+              }
+            ],
+            "score_mode": "multiply",
+            "boost_mode": "multiply"
+          }
         }
       ],
       "filter": [
@@ -76,60 +268,460 @@ const DEFAULT_INPUT = `{
           "terms": {
             "season": ["summer", "all-season"]
           }
+        },
+        {
+          "range": {
+            "rating": {
+              "gte": 3.0
+            }
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "term": {
+                  "gender": "unisex"
+                }
+              },
+              {
+                "term": {
+                  "gender": "men"
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        {
+          "terms": {
+            "size_available": ["S", "M", "L", "XL"]
+          }
+        },
+        {
+          "range": {
+            "weight_grams": {
+              "gte": 200,
+              "lte": 800
+            }
+          }
+        },
+        {
+          "exists": {
+            "field": "images"
+          }
+        },
+        {
+          "range": {
+            "image_count": {
+              "gte": 2
+            }
+          }
+        },
+        {
+          "term": {
+            "has_video": false
+          }
+        },
+        {
+          "range": {
+            "created_at": {
+              "gte": "2023-01-01T00:00:00Z"
+            }
+          }
+        },
+        {
+          "range": {
+            "updated_at": {
+              "gte": "now-1y/d"
+            }
+          }
+        },
+        {
+          "nested": {
+            "path": "inventory",
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "range": {
+                      "inventory.quantity": {
+                        "gt": 0
+                      }
+                    }
+                  },
+                  {
+                    "term": {
+                      "inventory.warehouse": "main"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "geo_distance": {
+            "distance": "100km",
+            "warehouse_location": {
+              "lat": 40.7128,
+              "lon": -74.0060
+            }
+          }
+        },
+        {
+          "script": {
+            "script": {
+              "source": "doc['price'].value * (1 - (doc['discount_percentage'].value / 100.0)) >= params.min_final_price",
+              "params": {
+                "min_final_price": 8.0
+              }
+            }
+          }
+        },
+        {
+          "wildcard": {
+            "sku": {
+              "value": "APP-*",
+              "boost": 1.0
+            }
+          }
+        },
+        {
+          "prefix": {
+            "brand": {
+              "value": "Le",
+              "boost": 1.0
+            }
+          }
+        },
+        {
+          "fuzzy": {
+            "name": {
+              "value": "jeans",
+              "fuzziness": "AUTO",
+              "max_expansions": 50,
+              "prefix_length": 0,
+              "transpositions": true
+            }
+          }
         }
       ],
-      "minimum_should_match": 0
+      "minimum_should_match": 2
     }
-  }
+  },
+  "sort": [
+    {
+      "_score": {
+        "order": "desc"
+      }
+    },
+    {
+      "rating": {
+        "order": "desc",
+        "missing": "_last"
+      }
+    },
+    {
+      "review_count": {
+        "order": "desc",
+        "missing": "_last"
+      }
+    },
+    {
+      "price": {
+        "order": "asc",
+        "missing": "_last"
+      }
+    },
+    {
+      "created_at": {
+        "order": "desc"
+      }
+    }
+  ],
+  "size": 50,
+  "from": 0,
+  "_source": {
+    "includes": [
+      "name",
+      "description",
+      "price",
+      "category",
+      "brand",
+      "rating",
+      "tags",
+      "on_sale",
+      "discount_percentage",
+      "images",
+      "variants",
+      "in_stock",
+      "sku",
+      "material",
+      "sustainable",
+      "free_shipping"
+    ],
+    "excludes": [
+      "internal_notes",
+      "supplier_info",
+      "cost_price"
+    ]
+  },
+  "highlight": {
+    "fields": {
+      "name": {
+        "number_of_fragments": 1,
+        "fragment_size": 150
+      },
+      "description": {
+        "number_of_fragments": 3,
+        "fragment_size": 200,
+        "pre_tags": ["<em>"],
+        "post_tags": ["</em>"]
+      },
+      "tags": {
+        "number_of_fragments": 0
+      }
+    },
+    "require_field_match": false
+  },
+  "aggs": {
+    "price_ranges": {
+      "range": {
+        "field": "price",
+        "ranges": [
+          {
+            "key": "budget",
+            "to": 30
+          },
+          {
+            "key": "mid-range",
+            "from": 30,
+            "to": 80
+          },
+          {
+            "key": "premium",
+            "from": 80
+          }
+        ]
+      }
+    },
+    "categories": {
+      "terms": {
+        "field": "category",
+        "size": 10,
+        "order": {
+          "_count": "desc"
+        }
+      }
+    },
+    "brands": {
+      "terms": {
+        "field": "brand",
+        "size": 15,
+        "min_doc_count": 2
+      },
+      "aggs": {
+        "avg_rating": {
+          "avg": {
+            "field": "rating"
+          }
+        }
+      }
+    },
+    "materials": {
+      "terms": {
+        "field": "material",
+        "size": 20
+      }
+    },
+    "tags": {
+      "terms": {
+        "field": "tags",
+        "size": 25,
+        "order": {
+          "_count": "desc"
+        }
+      }
+    },
+    "rating_stats": {
+      "stats": {
+        "field": "rating"
+      }
+    },
+    "price_stats": {
+      "stats": {
+        "field": "price"
+      },
+      "aggs": {
+        "price_histogram": {
+          "histogram": {
+            "field": "price",
+            "interval": 20,
+            "min_doc_count": 1
+          }
+        }
+      }
+    },
+    "on_sale_count": {
+      "filter": {
+        "term": {
+          "on_sale": true
+        }
+      }
+    },
+    "in_stock_count": {
+      "filter": {
+        "term": {
+          "in_stock": true
+        }
+      }
+    }
+  },
+  "suggest": {
+    "text": "Blue jeans",
+    "product_suggestions": {
+      "term": {
+        "field": "name",
+        "size": 5,
+        "suggest_mode": "popular"
+      }
+    },
+    "category_suggestions": {
+      "term": {
+        "field": "category",
+        "size": 3
+      }
+    }
+  },
+  "track_scores": true,
+  "explain": false,
+  "version": true
 }`
 
-const DEFAULT_OUTPUT = `name: item_booster
-data: 
-  item_dataset: 
+const DEFAULT_OUTPUT = `name: advanced_product_search
+data:
+  item_dataset:
     name: apparel_catalog
   index:
-    search: 
-      item_fields: 
+    search:
+      item_fields:
         - name
         - description
-queries: 
-  search_products: 
+        - tags
+        - brand
+        - category
+queries:
+  search_products:
     query:
       type: rank_items
+      columns:
+        - name
+        - description
+        - price
+        - category
+        - brand
+        - rating
+        - tags
+        - on_sale
+        - discount_percentage
+        - images
+        - variants
+        - in_stock
+        - sku
+        - material
+        - sustainable
+        - free_shipping
       retrieve:
         - type: item_text_search
-          mode: 
+          name: text_search
+          mode:
             type: lexical
           input_text_query: "Blue jeans for summer"
+          filter: "price >= 10 AND price <= 200 AND in_stock = true AND season IN ('summer', 'all-season') AND rating >= 3.0 AND (gender = 'unisex' OR gender = 'men') AND size_available IN ('S', 'M', 'L', 'XL') AND weight_grams >= 200 AND weight_grams <= 800 AND image_count >= 2 AND has_video = false AND discontinued = false AND hidden = false AND stock_quantity > 0 AND sku LIKE 'APP-%' AND brand LIKE 'Le%'"
       score:
         type: score_ensemble
-        name: boosted_ranking
+        name: multi_factor_ranking
         value_model: base
       reorder:
         - type: boosted
-          name: featured_boost
+          name: featured_tag_boost
           strength: 2.0
           retriever:
-            type: "item_filter"
+            type: item_filter
             filter: "tags = 'featured'"
+        - type: boosted
+          name: new_arrival_boost
+          strength: 1.8
+          retriever:
+            type: item_filter
+            filter: "tags = 'new_arrival'"
+        - type: boosted
+          name: bestseller_boost
+          strength: 1.6
+          retriever:
+            type: item_filter
+            filter: "tags = 'bestseller'"
         - type: boosted
           name: price_range_boost
           strength: 1.5
           retriever:
-            type: "item_filter"
+            type: item_filter
             filter: "price >= 20 AND price <= 100"
+        - type: boosted
+          name: high_rating_boost
+          strength: 1.4
+          retriever:
+            type: item_filter
+            filter: "rating >= 4.5"
         - type: boosted
           name: in_stock_boost
           strength: 1.3
           retriever:
-            type: "item_filter"
+            type: item_filter
             filter: "in_stock = true"
+        - type: boosted
+          name: on_sale_boost
+          strength: 1.3
+          retriever:
+            type: item_filter
+            filter: "on_sale = true"
+        - type: boosted
+          name: recent_release_boost
+          strength: 1.3
+          retriever:
+            type: item_filter
+            filter: "days_since_release <= 30"
+        - type: boosted
+          name: discount_boost
+          strength: 1.25
+          retriever:
+            type: item_filter
+            filter: "discount_percentage >= 20"
         - type: boosted
           name: category_boost
           strength: 1.2
           retriever:
-            type: "item_filter"
-            filter: "category IN ('jeans', 'pants', 'bottoms')"`
+            type: item_filter
+            filter: "category IN ('jeans', 'pants', 'bottoms')"
+        - type: boosted
+          name: free_shipping_boost
+          strength: 1.2
+          retriever:
+            type: item_filter
+            filter: "free_shipping = true"
+        - type: boosted
+          name: material_boost
+          strength: 1.15
+          retriever:
+            type: item_filter
+            filter: "material IN ('cotton', 'denim', 'organic')"
+        - type: boosted
+          name: review_count_boost
+          strength: 1.1
+          retriever:
+            type: item_filter
+            filter: "review_count >= 50"`
 
 export default function Home() {
   const [inputCode, setInputCode] = useState(DEFAULT_INPUT);
@@ -140,9 +732,60 @@ export default function Home() {
   const lineLengthInput = inputCode ? inputCode.split('\n').length : 0;
   const lineLengthOutput = outputCode ? outputCode.split('\n').length : 0;
 
-  const handleSubmit = async () => {
-    if (!inputCode.trim()) return;
+  const makeStreamingRequest = async () => {
+    setIsLoading(true);
+    setOutputCode("");
 
+    try {
+      const response = await fetch("/api/refactor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: inputCode, stream: true }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to fetch");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.chunk) {
+                setOutputCode((prev) => prev + data.chunk);
+              } else if (data.done && data.refactoredCode) {
+                setOutputCode(data.refactoredCode);
+                setIsLoading(false);
+                setTimeout(() => setShowResult(true), 100);
+              } else if (data.error) {
+                setIsLoading(false);
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error refactoring code:", error);
+      setIsLoading(false);
+    }
+  };
+
+  const makeSyncRequest = async () => {
     setIsLoading(true);
 
     try {
@@ -151,8 +794,12 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: inputCode }),
+        body: JSON.stringify({ code: inputCode, stream: false }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch");
+      }
 
       const data = await response.json();
       if (data.refactoredCode) {
@@ -164,6 +811,11 @@ export default function Home() {
       console.error("Error refactoring code:", error);
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async () => {
+    if (!inputCode.trim()) return;
+    await makeSyncRequest();
   };
 
   const handleCopy = async () => {
