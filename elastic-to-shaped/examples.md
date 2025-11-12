@@ -1,8 +1,10 @@
 # Example engine configs
 
-## Boost based on tags, in_stock, category, 
+These engine configs are copy-pasted into `/app/api/refactor/constants.ts` for use in the system prompt
 
-### Elastic example -
+## Boost based on tags, in_stock, category, price and featured
+
+### Input: Elastic DSL
 
 ```json
 {
@@ -77,10 +79,10 @@
 }
 ```
 
-### Shaped example - 
+### Output: Shaped engine config
 
 ```yaml
-name: item_booster
+name: boosted_catalog_search
 data: 
   item_dataset: 
     name: apparel_catalog
@@ -127,4 +129,138 @@ queries:
           retriever:
             type: "item_filter"
             filter: "category IN ('jeans', 'pants', 'bottoms')"
+```
+
+## Filter and sort without boosts
+
+### Input: Elastic DSL
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "description": "Blue jeans for summer"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "tags": "featured"
+          }
+        },
+        {
+          "range": {
+            "price": {
+              "gte": 20,
+              "lte": 100
+            }
+          }
+        },
+        {
+          "term": {
+            "in_stock": true
+          }
+        },
+        {
+          "terms": {
+            "category": [
+              "jeans",
+              "pants",
+              "bottoms"
+            ]
+          }
+        },
+        {
+          "range": {
+            "rating": {
+              "gte": 4.0
+            }
+          }
+        },
+        {
+          "term": {
+            "brand": "Levis"
+          }
+        }
+      ],
+      "should": [
+        {
+          "term": {
+            "on_sale": true
+          }
+        },
+        {
+          "range": {
+            "discount": {
+              "gte": 10
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sort": [
+    { "price": "asc" },
+    { "rating": "desc" }
+  ],
+  "size": 20,
+  "_source": ["name", "price", "category", "brand", "rating", "tags", "on_sale"]
+}
+
+
+### Output: Shaped engine config
+
+```yaml
+name: filtered_product_search
+data:
+  item_dataset:
+    name: apparel_catalog
+  index:
+    search:
+      item_fields:
+        - name
+        - description
+queries:
+  search_products:
+    query:
+      type: rank_items
+      columns:
+        - name
+        - price
+        - category
+        - brand
+        - rating
+        - tags
+        - on_sale
+      retrieve:
+        - type: item_text_search
+          name: text_search
+          mode:
+            type: lexical
+          input_text_query: "Blue jeans for summer"
+          filter: "tags = 'featured' AND price >= 20 AND price <= 100 AND in_stock = true AND category IN ('jeans', 'pants', 'bottoms') AND rating >= 4.0 AND brand = 'Levis'"
+      reorder:
+        - type: boosted
+          name: on_sale_boost
+          strength: 1.0
+          retriever:
+            type: item_filter
+            filter: "on_sale = true"
+        - type: boosted
+          name: discount_boost
+          strength: 1.0
+          retriever:
+            type: item_filter
+            filter: "discount >= 10"
+        - type: item_column_order
+          name: sort_by_price_rating
+          columns:
+            - name: price
+              ascending: true
+            - name: rating
+              ascending: false
+      limit: 20
 ```

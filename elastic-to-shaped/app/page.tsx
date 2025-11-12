@@ -6,6 +6,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, Copy, Check } from "lucide-react";
+import Editor from "react-simple-code-editor";
+import { highlight, languages } from "prismjs";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-yaml";
+import "prismjs/themes/prism-dark.css";
 
 const DEFAULT_INPUT = `{
   "query": {
@@ -135,15 +140,10 @@ export default function Home() {
   const lineLengthInput = inputCode ? inputCode.split('\n').length : 0;
   const lineLengthOutput = outputCode ? outputCode.split('\n').length : 0;
 
-  const handleTextBoxChange = (e: any) => {
-    setInputCode(e.target.value);
-  };
-
   const handleSubmit = async () => {
     if (!inputCode.trim()) return;
 
     setIsLoading(true);
-    setOutputCode("");
 
     try {
       const response = await fetch("/api/refactor", {
@@ -178,39 +178,6 @@ export default function Home() {
         <h1 className="text-4xl md:text-5xl font-bold text-light-contrast text-center mb-8">
           Replace complex Elastic DSL with a single YAML file
         </h1>
-        {/* {!showResult && (
-          <div className="space-y-6 transition-opacity duration-300 opacity-100">
-            <Card className="p-6 space-y-4">
-              <div className="space-y-2">
-                <h3 className="font-sans text-sm text-foreground">
-                <label htmlFor="code-input">
-                  Your Elasticsearch Query Code
-                </label>
-                </h3>
-                <Textarea
-                  id="code-input"
-                  placeholder="// Paste your Elasticsearch query code here...&#10;const query = {&#10;  query: {&#10;    match: {&#10;      title: 'search term'&#10;    }&#10;  }&#10;};"
-                  className="text-light-contrast"
-                  onChange={handleTextBoxChange}
-                  />
-              </div>
-
-              <Button
-                onClick={handleSubmit}
-                disabled={!inputCode.trim()}
-                size="lg"
-                className="w-full md:w-auto"
-              >
-                Refactor Code
-                {
-                !isLoading ? 
-                <ArrowRight className="size-4" />
-                : <Spinner />
-                }
-              </Button>
-            </Card>
-          </div>
-        )} */}
 
         {
           <div className="space-y-6 animate-in fade-in duration-700">
@@ -224,34 +191,48 @@ export default function Home() {
               <Card className="border-primary/50 p-6 space-y-3 bg-linear-to-tr from-[#1C1531] to-[#0E0A19]">
                 <div className="flex items-center justify-between">
                   <div className="flex-columns">
-                  <h2 className="text-light-contrast text-md tracking-wide">Original</h2>
+                  <h2 className="text-light-contrast text-lg tracking-wide">Original</h2>
                   <p className="text-light-contrast text-sm">{lineLengthInput} lines</p>
                   </div>
                   <Button onClick={handleSubmit}>
                     Run <>{isLoading ? <Spinner className="size-4"/>: <ArrowRight className="size-4" />}</>
                   </Button>
                 </div>
-                <Textarea
-                  defaultValue={DEFAULT_INPUT}
-                  id="code-input"
-                  placeholder="// Paste your Elasticsearch query code here...&#10;const query = {&#10;  query: {&#10;    match: {&#10;      title: 'search term'&#10;    }&#10;  }&#10;};"
-                  className="border-none text-light-contrast font-mono min-h-64 resize-none"
-                  onChange={handleTextBoxChange}
-                />
+                <div className="border-none bg-background rounded-md h-64 overflow-auto">
+                  <Editor
+                    value={inputCode}
+                    onValueChange={setInputCode}
+                    highlight={(code) => highlight(code, languages.json, "json")}
+                    padding={12}
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: 12,
+                      minHeight: "256px",
+                      outline: "none",
+                      backgroundColor: "transparent",
+                    }}
+                    textareaClassName="border-none text-light-contrast font-mono resize-none focus:outline-none focus:ring-0"
+                    preClassName="border-none m-0"
+                    className="border-none text-light-contrast font-mono"
+                  />
+                </div>
               </Card>
 
               <Card className="p-6 space-y-3 border-primary/50 bg-linear-to-tl from-[#1C1531] to-[#0E0A19]">
                 <div className="flex items-center justify-between">
                 <div className="flex-columns">
-                  <h3 className="text-light-contrast text-md tracking-wide">Refactored</h3>
+                  <h3 className="text-light-contrast text-lg tracking-wide">Refactored</h3>
                   <p className="text-light-contrast text-sm">
                   {lineLengthOutput} lines
                   </p>
                   </div>
+                </div>
+                <div id="code-output" className="relative border-none h-64 bg-background rounded-md">
                   <Button
                     onClick={handleCopy}
                     size="sm"
-                    className="gap-2"
+                    className="absolute top-2 right-2 z-10 gap-2 text-light-contrast"
+                    variant="ghost"
                   >
                     {copied ? (
                         <Check className="size-4" />
@@ -259,10 +240,25 @@ export default function Home() {
                         <Copy className="size-4" />
                     )}
                   </Button>
+                  <div className="h-full overflow-auto">
+                    <Editor 
+                      value={outputCode}
+                      highlight={(code) => highlight(code, languages.yaml, "yaml")}
+                      onValueChange={() => {}}
+                      padding={12}
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: 12,
+                        minHeight: "256px",
+                        outline: "none",
+                        backgroundColor: "transparent",
+                      }}
+                      textareaClassName="border-none text-light-contrast font-mono resize-none focus:outline-none focus:ring-0 cursor-default"
+                      preClassName="border-none m-0"
+                      className="border-none text-light-contrast font-mono"
+                    />
+                  </div>
                 </div>
-                <pre id="code-output" className="border-none h-64 bg-background p-4 rounded-md overflow-x-auto text-sm font-mono text-light-contrast max-h-[400px] overflow-y-auto">
-                  {outputCode}
-                </pre>
               </Card>
             </div>
           </div>
