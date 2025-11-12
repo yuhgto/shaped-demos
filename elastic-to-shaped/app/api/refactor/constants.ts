@@ -1,12 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { Anthropic } from '@anthropic-ai/sdk';
-import { MessageParam } from "@anthropic-ai/sdk/resources/messages.mjs";
-
-export async function POST(request: NextRequest) {
-  try {
-    const { code } = await request.json()
-    const documentationString = `
-The input structure of the YAML should  have this shape: 
+export const documentation = `
+The structure of the YAML should  have this shape: 
 
 json\`\`\`
 {
@@ -327,68 +320,21 @@ json\`\`\`
   },
   "version": "v2"
 }
-  \`\`\`
-    `
-    const anthropic = new Anthropic();
+  \`\`\``
 
-    if (!code) {
-      return NextResponse.json({ error: "No code provided" }, { status: 400 })
-    }
-
-    // TODO: Replace this with your actual refactoring API call
-    const system = `
+  export const systemPrompt = `
     ## Instructions
     You are a senior engineer who works on Elasticsearch retrieval systems. You have been given the following ElasticSearch DSL to convert to an engine config with the Shaped Ranking API. 
     Use the "Attached documentation" to understand the Shaped API schema. Then, convert the "Input Code" to a Shaped Engine configuration. 
     The input code may be any language, including Elastic DSL, Go, Javascript, Python, etc. 
 
-    The Engine Configuration should not use the "query" key, for conciseness. 
+    The Engine Configuration should not include the "queries" key, for conciseness. 
 
-    If the input is code, your output should only contain YAML, with no additional markup or comments. 
+    If the input is code, your output should be YAML-formatted key-value pairs. Do not include any comments. Include a prefix "Output:" before your key-value pairs.
 
     If the input is not code, you should output an error message - "No code was included in the input"
 
 
     ## Documentation: 
-    ${documentationString}
+    ${documentation}
     `
-
-    const prompt = `
-    ## Input Code: 
-    \`\`\`
-    ${code}
-    \`\`\``
-
-    const messages:MessageParam[] = [
-      {"role": "user", "content": prompt}
-    ]
-
-    const tokens = await anthropic.messages.countTokens({
-      model: "claude-haiku-4-5-20251001",
-      messages,
-      system,
-    })
-    console.log({tokens});
-    if (tokens.input_tokens < 100000) {
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 1024,
-        messages,
-        system: system
-      })
-      console.log({response})
-      const contentBlock = response.content[0];
-      // Mock refactoring for demonstration
-      const refactoredCode = (typeof contentBlock === 'object' && 'text' in contentBlock)
-        ? contentBlock.text
-        : JSON.stringify(contentBlock, null, 2);
-  
-      return NextResponse.json({ refactoredCode })
-    } else {
-      return NextResponse.json({refactoredCode: "Input too long. Please reach out to our team for a consultation!"})
-    }
-  } catch (error) {
-    console.error("Error in refactor API:", error)
-    return NextResponse.json({ error: "Failed to refactor code - internal server error" }, { status: 500 })
-  }
-}
