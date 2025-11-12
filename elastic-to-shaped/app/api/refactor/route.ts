@@ -41,10 +41,13 @@ export async function POST(request: NextRequest) {
       console.log({response})
       const contentBlock = response.content[0];
       // Mock refactoring for demonstration
-      const refactoredCode = (typeof contentBlock === 'object' && 'text' in contentBlock)
+      const output = (typeof contentBlock === 'object' && 'text' in contentBlock)
         ? contentBlock.text
         : JSON.stringify(contentBlock, null, 2);
   
+      // remove the first and last line from output
+      const outputLines = output.split('\n');
+      const refactoredCode = outputLines.slice(1, -1).join('\n');
       return NextResponse.json({ refactoredCode })
     } else {
       return NextResponse.json({refactoredCode: "Input too long. Please reach out to our team for a consultation!"})

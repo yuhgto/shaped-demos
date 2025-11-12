@@ -330,7 +330,7 @@ json\`\`\`
 
     The Engine Configuration should not include the "queries" key, for conciseness. 
 
-    If the input is code, your output should be YAML-formatted key-value pairs. Do not include any comments. Include a prefix "Output:" before your key-value pairs.
+    If the input is code, your output should be YAML-formatted key-value pairs. Do not include any comments or additional markup.
 
     If the input is not code, you should output an error message - "No code was included in the input"
 
