@@ -1,0 +1,7 @@
+# global gitignore 
+
+# No ENVs anywhere
+.env*
+*/.env*
+*/*/.env*
+
