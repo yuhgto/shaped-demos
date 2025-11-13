@@ -210,6 +210,11 @@ queries:
   "_source": ["name", "price", "category", "brand", "rating", "tags", "on_sale"]
 }
 
+#### What this query does: 
+
+- Match "Blue jeans for summer" in the description
+- Are featured, in stock, priced $20–$100, rated 4.0+, from Levis, and in jeans/pants/bottoms
+- Get a boost if on sale or have a discount ≥ 10%
 
 #### Output: Shaped engine config
 
@@ -240,7 +245,7 @@ queries:
           name: text_search
           mode:
             type: lexical
-          input_text_query: "Blue jeans for summer"
+          input_text_query: "$params.input"
           filter: "tags = 'featured' AND price >= 20 AND price <= 100 AND in_stock = true AND category IN ('jeans', 'pants', 'bottoms') AND rating >= 4.0 AND brand = 'Levis'"
       reorder:
         - type: boosted
@@ -255,13 +260,15 @@ queries:
           retriever:
             type: item_filter
             filter: "discount >= 10"
-        - type: item_column_order
+        - type: boosted
           name: sort_by_price_rating
-          columns:
-            - name: price
-              ascending: true
-            - name: rating
-              ascending: false
+          retriever: 
+            type: item_column_order
+            columns:
+              - name: price
+                ascending: true
+              - name: rating
+                ascending: false
       limit: 20
 ```
 
@@ -858,164 +865,9 @@ queries:
 }
 ```
 
-#### Query Rules (Plain English)
-
-**MUST MATCH (Required):**
-
-1. The product must match at least one of these text search conditions:
-   - Multi-field search: "Blue jeans for summer" must appear in name (3x weight), description (2x weight), tags (1.5x weight), brand (1.2x weight), or category (1.1x weight), with all words required and at least 75% of words matching
-   - Phrase match: "Blue jeans for summer" must appear as a phrase in description (allowing up to 2 words between terms)
-   - Prefix match: "Blue jeans" must appear at the start of the product name
-
-2. The product must NOT be:
-   - Discontinued
-   - Hidden
-   - Out of stock (stock_quantity must be greater than 0)
-
-**FILTER REQUIREMENTS (Hard Requirements - All Must Pass):**
-
-3. Price must be between $10 and $200 (inclusive)
-
-4. Product must be in stock
-
-5. Season must be either "summer" or "all-season"
-
-6. Rating must be at least 3.0 stars
-
-7. Gender must be either "unisex" or "men"
-
-8. At least one of these sizes must be available: S, M, L, or XL
-
-9. Weight must be between 200 and 800 grams (inclusive)
-
-10. Product must have at least one image
-
-11. Product must have at least 2 images
-
-12. Product must NOT have a video
-
-13. Product must have been created on or after January 1, 2023
-
-14. Product must have been updated within the last year
-
-15. In the inventory nested data, quantity must be greater than 0 AND warehouse must be "main"
-
-16. Warehouse location must be within 100 kilometers of coordinates (40.7128, -74.0060) - New York City area
-
-17. Final price (after discount) must be at least $8.00 (calculated as: price × (1 - discount_percentage/100))
-
-18. SKU must match the pattern "APP-*" (must start with "APP-")
-
-19. Brand name must start with "Le"
-
-20. Product name must be similar to "jeans" (fuzzy matching with automatic fuzziness)
-
-**BOOSTING RULES (Scoring Bonuses - At Least 2 Must Match):**
-
-21. Featured tag: 2.0x boost
-
-22. New arrival tag: 1.8x boost
-
-23. Bestseller tag: 1.6x boost
-
-24. Price between $20-$100: 1.5x boost
-
-25. High rating (4.5+ stars): 1.4x boost
-
-26. In stock: 1.3x boost
-
-27. On sale: 1.3x boost
-
-28. Released within last 30 days: 1.3x boost
-
-29. Discount of 20% or more: 1.25x boost
-
-30. Category is jeans, pants, or bottoms: 1.2x boost
-
-31. Free shipping: 1.2x boost
-
-32. Variant color is blue: 1.2x boost (nested query)
-
-33. Variant size is medium: 1.1x boost (nested query)
-
-34. Material is cotton, denim, or organic: 1.15x boost
-
-35. Sustainable product: 1.1x boost
-
-36. Review count of 50 or more: 1.1x boost
-
-37. Gaussian decay boost for price: Products closer to $50 get higher scores (decay starts at $50, scale of $30)
-
-38. Gaussian decay boost for rating: Products closer to 5.0 stars get higher scores (decay starts at 5.0, scale of 1.0)
-
-**SORTING RULES:**
-
-39. Primary sort: By relevance score (highest first)
-
-40. Secondary sort: By rating (highest first, items without rating go to end)
-
-41. Tertiary sort: By review count (highest first, items without review count go to end)
-
-42. Fourth sort: By price (lowest first, items without price go to end)
-
-43. Fifth sort: By creation date (newest first)
-
-**RESULT CONFIGURATION:**
-
-44. Return maximum 50 results
-
-45. Start from result 0 (first page)
-
-46. Include these fields in results: name, description, price, category, brand, rating, tags, on_sale, discount_percentage, images, variants, in_stock, sku, material, sustainable, free_shipping
-
-47. Exclude these fields from results: internal_notes, supplier_info, cost_price
-
-**HIGHLIGHTING RULES:**
-
-48. Highlight matches in name field: Show 1 fragment of 150 characters
-
-49. Highlight matches in description field: Show 3 fragments of 200 characters each, wrap matches in `<em>` tags
-
-50. Highlight matches in tags field: Show entire field (no fragments)
-
-51. Highlighting can match across any field (not just the searched field)
-
-**AGGREGATION RULES (Analytics):**
-
-52. Price ranges: Count products in budget (<$30), mid-range ($30-$80), and premium ($80+) categories
-
-53. Categories: Show top 10 most common categories, ordered by count
-
-54. Brands: Show top 15 brands with at least 2 products, and calculate average rating for each brand
-
-55. Materials: Show top 20 most common materials
-
-56. Tags: Show top 25 most common tags, ordered by count
-
-57. Rating statistics: Calculate min, max, avg, sum, and count for ratings
-
-58. Price statistics: Calculate min, max, avg, sum, and count for prices, plus a histogram with $20 intervals
-
-59. On sale count: Count how many products are on sale
-
-60. In stock count: Count how many products are in stock
-
-**SUGGESTION RULES:**
-
-61. Generate product name suggestions based on "Blue jeans" query, return top 5 popular suggestions
-
-62. Generate category suggestions based on "Blue jeans" query, return top 3 suggestions
-
-**QUERY PARAMETERS:**
-
-63. Track and return relevance scores for all results
-
-64. Do not include query explanation in response
-
-65. Include document version numbers in response
-
 #### Output: Shaped engine config
 
+version: v2
 name: advanced_product_search
 data:
   item_dataset:
@@ -1036,7 +888,9 @@ queries:
         - type: item_text_search
           mode:
             type: lexical
-          input_text_query: "Blue jeans for summer"
+          input_text_query: "$params.input"
+        - type: item_filter
+          filter: "price >= 10 AND price <= 200 AND in_stock = true AND season IN ('summer', 'all-season') AND rating >= 3.0 AND (gender = 'unisex' OR gender = 'men') AND size_available IN ('S', 'M', 'L', 'XL') AND weight_grams >= 200 AND weight_grams <= 800 AND image_count >= 2 AND has_video = false AND discontinued = false AND hidden = false AND stock_quantity > 0"  
       score:
         type: score_ensemble
         name: multi_factor_ranking
@@ -1044,89 +898,86 @@ queries:
       reorder:
         - type: boosted
           name: featured_tag_boost
-          strength: 2.0
+          strength: 0.7
           retriever:
             type: item_filter
             filter: "tags = 'featured'"
         - type: boosted
           name: new_arrival_boost
-          strength: 1.8
+          strength: 0.9
           retriever:
             type: item_filter
             filter: "tags = 'new_arrival'"
         - type: boosted
           name: bestseller_boost
-          strength: 1.6
+          strength: 0.2
           retriever:
             type: item_filter
             filter: "tags = 'bestseller'"
         - type: boosted
           name: price_range_boost
-          strength: 1.5
+          strength: 0.2
           retriever:
             type: item_filter
             filter: "price >= 20 AND price <= 100"
         - type: boosted
           name: high_rating_boost
-          strength: 1.4
+          strength: 0.9
           retriever:
             type: item_filter
             filter: "rating >= 4.5"
         - type: boosted
           name: in_stock_boost
-          strength: 1.3
+          strength: 0.43
           retriever:
             type: item_filter
             filter: "in_stock = true"
         - type: boosted
           name: on_sale_boost
-          strength: 1.3
+          strength: 0.6
           retriever:
             type: item_filter
             filter: "on_sale = true"
         - type: boosted
           name: recent_release_boost
-          strength: 1.3
+          strength: 0.1
           retriever:
             type: item_filter
             filter: "days_since_release <= 30"
         - type: boosted
           name: discount_boost
-          strength: 1.25
+          strength: 0.5
           retriever:
             type: item_filter
             filter: "discount_percentage >= 20"
         - type: boosted
           name: category_boost
-          strength: 1.2
+          strength: 0.9
           retriever:
             type: item_filter
             filter: "category IN ('jeans', 'pants', 'bottoms')"
         - type: boosted
           name: free_shipping_boost
-          strength: 1.2
+          strength: 0.9
           retriever:
             type: item_filter
             filter: "free_shipping = true"
         - type: boosted
           name: material_boost
-          strength: 1.15
+          strength: 0.8
           retriever:
             type: item_filter
             filter: "material IN ('cotton', 'denim', 'organic')"
         - type: boosted
           name: review_count_boost
-          strength: 1.1
+          strength: 0.2
           retriever:
             type: item_filter
             filter: "review_count >= 50"
         - type: boosted
           name: sustainable_boost
-          strength: 1.1
+          strength: 0.4
           retriever:
             type: item_filter
             filter: "sustainable = true"
-        - type: item_filter
-          name: base_filters
-          filter: "price >= 10 AND price <= 200 AND in_stock = true AND season IN ('summer', 'all-season') AND rating >= 3.0 AND (gender = 'unisex' OR gender = 'men') AND size_available IN ('S', 'M', 'L', 'XL') AND weight_grams >= 200 AND weight_grams <= 800 AND image_count >= 2 AND has_video = false AND discontinued = false AND hidden = false AND stock_quantity > 0"
       limit: 50
