@@ -5,3 +5,6 @@
 */.env*
 */*/.env*
 
+# no .next or .vercel
+*/.next
+*/.vercel
