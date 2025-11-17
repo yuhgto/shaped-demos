@@ -8,3 +8,6 @@
 # no .next or .vercel
 */.next
 */.vercel
+.DS_Store
+*/.DS_Store
+*/**/.DS_Store
