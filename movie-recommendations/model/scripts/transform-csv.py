@@ -2,13 +2,13 @@ import pandas as pd
 import re
 import json
 
-OUTPUT_FILE_NAME='app/model/data/movies_movieslens32m.jsonl'
+OUTPUT_FILE_NAME='model/data/movies_movieslens32m.jsonl'
 
 # output: movie_id, movie_title, release_date, poster_url, imdb_url_new, genres
 
-movies = pd.read_csv('app/model/data/ml-latest-small/movies.csv', sep=",", header=0, nrows=None)
-links = pd.read_csv('app/model/data/ml-latest-small/links.csv', sep=",", header=0, nrows=None)
-posters = pd.read_csv('app/model/data/processed/movie_posters_scraped.csv', sep=",", header=0, nrows=None)
+movies = pd.read_csv('model/data/ml-latest-small/movies.csv', sep=",", header=0, nrows=None)
+links = pd.read_csv('model/data/ml-latest-small/links.csv', sep=",", header=0, nrows=None)
+posters = pd.read_csv('model/data/processed/movie_posters_scraped.csv', sep=",", header=0, nrows=None)
 
 df = movies.copy()
 df = df.merge(links, on='movieId', how='left')
@@ -82,4 +82,5 @@ with pd.option_context('display.max_columns', None):
     print(df.head(5))
 
 df.to_json(OUTPUT_FILE_NAME, orient='records', lines=True)
+df.to_json("data.json", orient='records')
 
