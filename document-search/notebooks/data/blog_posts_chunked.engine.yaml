@@ -1,5 +1,5 @@
 version: v2
-name: blog_posts__simple_semantic_search
+name: blog_posts__simple_semantic_search_3
 data:
   item_dataset:
     name: blog_post_chunked
@@ -11,11 +11,3 @@ data:
       - author
       - categories
       - roles
-    embeddings:
-    - name: content_embedding
-      encoder:
-        type: hugging_face
-        model_name: sentence-transformers/all-MiniLM-L6-v2
-        item_fields:
-        - name
-        - content
