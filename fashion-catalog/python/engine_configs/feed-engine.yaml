@@ -1,0 +1,17 @@
+data:
+  item-dataset: posts
+  index:
+    embeddings:
+       - type: hugging_face
+         model_name: answerdotai/ModernBERT-base
+         item_fields:
+           - description
+           - title
+
+training:
+   schedule: @daily
+   models:
+      - policy_type: lightgbm
+        name: click_model
+        events:
+          - clicks
