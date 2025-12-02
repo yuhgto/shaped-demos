@@ -2,8 +2,11 @@
 
 # No ENVs anywhere
 .env*
+.venv*
 */.env*
+*/.venv*
 */*/.env*
+*/*/.venv*
 
 # no .next or .vercel
 */.next

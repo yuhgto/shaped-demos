@@ -5,11 +5,15 @@ interface ProductCardProps {
   image: string;
   title: string;
   price: string;
+  onClick?: () => void;
 }
 
-export function ProductCard({ image, title, price }: ProductCardProps) {
+export function ProductCard({ image, title, price, onClick }: ProductCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+      onClick={onClick}
+    >
       <CardHeader className="p-0">
         <div className="relative aspect-square w-full">
           <Image

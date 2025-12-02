@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
+import { ShoppingCartSidebar } from "@/components/ShoppingCartSidebar";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +14,7 @@ import {
 import { InfoIcon } from "lucide-react";
 
 export default function Home() {
+  const [cartItems, setCartItems] = useState<any[]>([]);
   // Sample product data - replace with your actual data
   const products = [
     {
@@ -301,9 +304,19 @@ export default function Home() {
     return `${IMAGE_BUCKET_BASE_URL}/0${PREFIX}/0${item_id.toString()}.jpg`;
   }
 
+  const handleAddToCart = (product: any) => {
+    setCartItems((prev) => [...prev, product]);
+  };
+
+  const handleRemoveFromCart = (index: number) => {
+    setCartItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const suggestedItems = products.slice(0, 3);
+
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pr-96">
         {/* Top Section */}
         <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
@@ -375,10 +388,17 @@ export default function Home() {
               image={getProductImageUrl(product.article_id)}
               title={product.prod_name}
               price={"10"}
+              onClick={() => handleAddToCart(product)}
             />
           ))}
         </div>
       </main>
+      <ShoppingCartSidebar
+        cartItems={cartItems}
+        suggestedItems={suggestedItems}
+        getProductImageUrl={getProductImageUrl}
+        onRemoveItem={handleRemoveFromCart}
+      />
     </div>
   );
 }

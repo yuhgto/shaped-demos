@@ -20,6 +20,6 @@ data:
         - department_name
 training:
   models:
-    - policy_type: "auto-tune"
+    - policy_type: lightgbm
     - policies:
         - lightgbm
