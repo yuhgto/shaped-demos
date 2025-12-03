@@ -1,0 +1,27 @@
+# lastfm dataset contains 1000 users and their recent 500 interactions
+# this engine should predict the next-song given a set of recent song picks
+# songs don't have much metadata so we will rely on the interaction set
+version: v2
+name: lastfm__demo_model
+data:
+  item_table:
+    name: lastfm_items
+  user_table:
+    name: lastfm_users
+  interaction_table: 
+    name: lastfm_interactions
+    query: select *, '5' as label from lastfm_interactions
+index:
+  lexical_search: # search songs by name or artist
+    
+training: 
+  models: 
+    - policy_type: lightgbm
+      name: lgbm_model
+    - policy_type: popular
+      name: popular
+    - policy_type: random
+      name: random
+    - policy_type: two-tower
+      name: two_tower
+    -
