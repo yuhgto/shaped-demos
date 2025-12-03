@@ -13,15 +13,16 @@ data:
     query: select *, '5' as label from lastfm_interactions
 index:
   lexical_search: # search songs by name or artist
-    
+    item_fields: 
+      - track_name
+      - artist_name
 training: 
   models: 
-    - policy_type: lightgbm
-      name: lgbm_model
     - policy_type: popular
       name: popular
     - policy_type: random
       name: random
     - policy_type: two-tower
       name: two_tower
-    -
+    - policy_type: sasrec
+      name: sasrec
