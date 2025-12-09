@@ -4,7 +4,7 @@ import { PoweredByBadge } from "./PoweredByBadge";
 const GitHubButton = () => {
   return (
     <a
-      href="https://github.com/shaped-ai/shaped-demos"
+      href="https://github.com/yuhgto/shaped-demos/document-search"
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center justify-center w-10 h-10 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg transition-colors"
