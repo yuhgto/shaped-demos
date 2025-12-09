@@ -2,9 +2,15 @@
 
 # No ENVs anywhere
 .env*
+.venv*
 */.env*
+*/.venv*
 */*/.env*
+*/*/.venv*
 
 # no .next or .vercel
 */.next
 */.vercel
+.DS_Store
+*/.DS_Store
+*/**/.DS_Store
