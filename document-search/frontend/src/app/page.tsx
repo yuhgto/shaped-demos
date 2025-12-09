@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Search, Loader2, Clock, User, ArrowUpRight } from "lucide-react"
 import { FloatingButtons } from "@/components/FloatingButtons"
+import debounce from "lodash/debounce"
 
 interface MainImage {
   fileId: string
@@ -115,31 +116,37 @@ export default function Home() {
   const [hasSearched, setHasSearched] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
-  // Debounced search
+  // Debounced search function
+  const debouncedSearch = React.useMemo(
+    () =>
+      debounce(async (query: string) => {
+        if (!query.trim()) {
+          setResults([])
+          setHasSearched(false)
+          return
+        }
+
+        setIsLoading(true)
+        setHasSearched(true)
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+          const data = await response.json()
+          setResults(data.results || [])
+        } catch (error) {
+          console.error("Search failed:", error)
+          setResults([])
+        } finally {
+          setIsLoading(false)
+        }
+      }, 300),
+    []
+  )
+
+  // Trigger debounced search on query change
   React.useEffect(() => {
-    if (!searchQuery.trim()) {
-      setResults([])
-      setHasSearched(false)
-      return
-    }
-
-    const timeoutId = setTimeout(async () => {
-      setIsLoading(true)
-      setHasSearched(true)
-      try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
-        const data = await response.json()
-        setResults(data.results || [])
-      } catch (error) {
-        console.error("Search failed:", error)
-        setResults([])
-      } finally {
-        setIsLoading(false)
-      }
-    }, 300)
-
-    return () => clearTimeout(timeoutId)
-  }, [searchQuery])
+    debouncedSearch(searchQuery)
+    return () => debouncedSearch.cancel()
+  }, [searchQuery, debouncedSearch])
 
   // Focus input on mount
   React.useEffect(() => {
@@ -166,7 +173,6 @@ export default function Home() {
         {/* Search Bar */}
         <div className="sticky top-4 z-20 mb-8">
           <div className="relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <input
               ref={inputRef}
               type="text"
