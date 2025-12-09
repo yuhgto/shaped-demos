@@ -1,9 +1,11 @@
 # shaped-demos
-A set of demo applications for the Shaped Relevance Engine
+A set of demo applications using Shaped as a datastore.
 
 <p>
-  These sample apps demonstrate what you can build with the Shaped Relevance Engine and showcase different use cases and features. As reference apps, they are not intended for production, but are a great way to learn how to implement search, recommendations, and personalization with Shaped.
+  These sample apps demonstrate what you can build with Shaped, and showcase different use cases and features. As reference apps, they are not intended for production, but are a great way to learn how to implement engines and queries.
 </p>
+
+Built with ❤️‍🔥 by Shaped.
 
 <table>
 <tr>
@@ -74,3 +76,4 @@ A set of demo applications for the Shaped Relevance Engine
   </td>
 </tr>
 </table>
+
