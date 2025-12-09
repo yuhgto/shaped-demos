@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { ShoppingCartSidebar } from "@/components/ShoppingCartSidebar";
 import {
@@ -15,286 +15,29 @@ import { InfoIcon } from "lucide-react";
 
 export default function Home() {
   const [cartItems, setCartItems] = useState<any[]>([]);
-  // Sample product data - replace with your actual data
-  const products = [
-    {
-      article_id: 108775015,
-      product_code: 108775,
-      prod_name: "Strap top",
-      product_type_no: 253,
-      product_type_name: "Vest top",
-      product_group_name: "Garment Upper body",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 9,
-      colour_group_name: "Black",
-      perceived_colour_value_id: 4,
-      perceived_colour_value_name: "Dark",
-      perceived_colour_master_id: 5,
-      perceived_colour_master_name: "Black",
-      department_no: 1676,
-      department_name: "Jersey Basic",
-      index_code: "A",
-      index_name: "Ladieswear",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 16,
-      section_name: "Womens Everyday Basics",
-      garment_group_no: 1002,
-      garment_group_name: "Jersey Basic",
-      detail_desc: "Jersey top with narrow shoulder straps.",
-    },
-    {
-      article_id: 108775044,
-      product_code: 108775,
-      prod_name: "Strap top",
-      product_type_no: 253,
-      product_type_name: "Vest top",
-      product_group_name: "Garment Upper body",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 10,
-      colour_group_name: "White",
-      perceived_colour_value_id: 3,
-      perceived_colour_value_name: "Light",
-      perceived_colour_master_id: 9,
-      perceived_colour_master_name: "White",
-      department_no: 1676,
-      department_name: "Jersey Basic",
-      index_code: "A",
-      index_name: "Ladieswear",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 16,
-      section_name: "Womens Everyday Basics",
-      garment_group_no: 1002,
-      garment_group_name: "Jersey Basic",
-      detail_desc: "Jersey top with narrow shoulder straps.",
-    },
-    {
-      article_id: 108775051,
-      product_code: 108775,
-      prod_name: "Strap top (1)",
-      product_type_no: 253,
-      product_type_name: "Vest top",
-      product_group_name: "Garment Upper body",
-      graphical_appearance_no: 1010017,
-      graphical_appearance_name: "Stripe",
-      colour_group_code: 11,
-      colour_group_name: "Off White",
-      perceived_colour_value_id: 1,
-      perceived_colour_value_name: "Dusty Light",
-      perceived_colour_master_id: 9,
-      perceived_colour_master_name: "White",
-      department_no: 1676,
-      department_name: "Jersey Basic",
-      index_code: "A",
-      index_name: "Ladieswear",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 16,
-      section_name: "Womens Everyday Basics",
-      garment_group_no: 1002,
-      garment_group_name: "Jersey Basic",
-      detail_desc: "Jersey top with narrow shoulder straps.",
-    },
-    {
-      article_id: 110065001,
-      product_code: 110065,
-      prod_name: "OP T-shirt (Idro)",
-      product_type_no: 306,
-      product_type_name: "Bra",
-      product_group_name: "Underwear",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 9,
-      colour_group_name: "Black",
-      perceived_colour_value_id: 4,
-      perceived_colour_value_name: "Dark",
-      perceived_colour_master_id: 5,
-      perceived_colour_master_name: "Black",
-      department_no: 1339,
-      department_name: "Clean Lingerie",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 61,
-      section_name: "Womens Lingerie",
-      garment_group_no: 1017,
-      garment_group_name: "Under-, Nightwear",
-      detail_desc:
-        "Microfibre T-shirt bra with underwired, moulded, lightly padded cups that shape the bust and provide good support. Narrow adjustable shoulder straps and a narrow hook-and-eye fastening at the back. Without visible seams for greater comfort.",
-    },
-    {
-      article_id: 110065002,
-      product_code: 110065,
-      prod_name: "OP T-shirt (Idro)",
-      product_type_no: 306,
-      product_type_name: "Bra",
-      product_group_name: "Underwear",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 10,
-      colour_group_name: "White",
-      perceived_colour_value_id: 3,
-      perceived_colour_value_name: "Light",
-      perceived_colour_master_id: 9,
-      perceived_colour_master_name: "White",
-      department_no: 1339,
-      department_name: "Clean Lingerie",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 61,
-      section_name: "Womens Lingerie",
-      garment_group_no: 1017,
-      garment_group_name: "Under-, Nightwear",
-      detail_desc:
-        "Microfibre T-shirt bra with underwired, moulded, lightly padded cups that shape the bust and provide good support. Narrow adjustable shoulder straps and a narrow hook-and-eye fastening at the back. Without visible seams for greater comfort.",
-    },
-    {
-      article_id: 110065011,
-      product_code: 110065,
-      prod_name: "OP T-shirt (Idro)",
-      product_type_no: 306,
-      product_type_name: "Bra",
-      product_group_name: "Underwear",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 12,
-      colour_group_name: "Light Beige",
-      perceived_colour_value_id: 1,
-      perceived_colour_value_name: "Dusty Light",
-      perceived_colour_master_id: 11,
-      perceived_colour_master_name: "Beige",
-      department_no: 1339,
-      department_name: "Clean Lingerie",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 61,
-      section_name: "Womens Lingerie",
-      garment_group_no: 1017,
-      garment_group_name: "Under-, Nightwear",
-      detail_desc:
-        "Microfibre T-shirt bra with underwired, moulded, lightly padded cups that shape the bust and provide good support. Narrow adjustable shoulder straps and a narrow hook-and-eye fastening at the back. Without visible seams for greater comfort.",
-    },
-    {
-      article_id: 111565001,
-      product_code: 111565,
-      prod_name: "20 den 1p Stockings",
-      product_type_no: 304,
-      product_type_name: "Underwear Tights",
-      product_group_name: "Socks & Tights",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 9,
-      colour_group_name: "Black",
-      perceived_colour_value_id: 4,
-      perceived_colour_value_name: "Dark",
-      perceived_colour_master_id: 5,
-      perceived_colour_master_name: "Black",
-      department_no: 3608,
-      department_name: "Tights basic",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 62,
-      section_name: "Womens Nightwear, Socks & Tigh",
-      garment_group_no: 1021,
-      garment_group_name: "Socks and Tights",
-      detail_desc:
-        "Semi shiny nylon stockings with a wide, reinforced trim at the top. Use with a suspender belt. 20 denier.",
-    },
-    {
-      article_id: 111565003,
-      product_code: 111565,
-      prod_name: "20 den 1p Stockings",
-      product_type_no: 302,
-      product_type_name: "Socks",
-      product_group_name: "Socks & Tights",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 13,
-      colour_group_name: "Beige",
-      perceived_colour_value_id: 2,
-      perceived_colour_value_name: "Medium Dusty",
-      perceived_colour_master_id: 11,
-      perceived_colour_master_name: "Beige",
-      department_no: 3608,
-      department_name: "Tights basic",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 62,
-      section_name: "Womens Nightwear, Socks & Tigh",
-      garment_group_no: 1021,
-      garment_group_name: "Socks and Tights",
-      detail_desc:
-        "Semi shiny nylon stockings with a wide, reinforced trim at the top. Use with a suspender belt. 20 denier.",
-    },
-    {
-      article_id: 111586001,
-      product_code: 111586,
-      prod_name: "Shape Up 30 den 1p Tights",
-      product_type_no: 273,
-      product_type_name: "Leggings/Tights",
-      product_group_name: "Garment Lower body",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 9,
-      colour_group_name: "Black",
-      perceived_colour_value_id: 4,
-      perceived_colour_value_name: "Dark",
-      perceived_colour_master_id: 5,
-      perceived_colour_master_name: "Black",
-      department_no: 3608,
-      department_name: "Tights basic",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 62,
-      section_name: "Womens Nightwear, Socks & Tigh",
-      garment_group_no: 1021,
-      garment_group_name: "Socks and Tights",
-      detail_desc:
-        "Tights with built-in support to lift the bottom. Black in 30 denier and light amber in 15 denier.",
-    },
-    {
-      article_id: 111593001,
-      product_code: 111593,
-      prod_name: "Support 40 den 1p Tights",
-      product_type_no: 304,
-      product_type_name: "Underwear Tights",
-      product_group_name: "Socks & Tights",
-      graphical_appearance_no: 1010016,
-      graphical_appearance_name: "Solid",
-      colour_group_code: 9,
-      colour_group_name: "Black",
-      perceived_colour_value_id: 4,
-      perceived_colour_value_name: "Dark",
-      perceived_colour_master_id: 5,
-      perceived_colour_master_name: "Black",
-      department_no: 3608,
-      department_name: "Tights basic",
-      index_code: "B",
-      index_name: "Lingeries/Tights",
-      index_group_no: 1,
-      index_group_name: "Ladieswear",
-      section_no: 62,
-      section_name: "Womens Nightwear, Socks & Tigh",
-      garment_group_no: 1021,
-      garment_group_name: "Socks and Tights",
-      detail_desc:
-        "Semi shiny tights that shape the tummy, thighs and calves while also encouraging blood circulation in the legs. Elasticated waist.",
-    },
-  ];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [suggestedItems, setSuggestedItems] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/products");
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
 
   function getProductImageUrl(item_id: number) {
     const IMAGE_BUCKET_BASE_URL =
@@ -312,7 +55,46 @@ export default function Home() {
     setCartItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const suggestedItems = products.slice(0, 3);
+  // Fetch suggested items based on cart contents
+  useEffect(() => {
+    async function fetchSuggestedItems() {
+      // Only fetch if there are items in the cart
+      if (cartItems.length === 0) {
+        setSuggestedItems([]);
+        return;
+      }
+
+      setLoadingSuggestions(true);
+      try {
+        // Extract article_ids from cart items
+        const interactions = cartItems.map((item) => String(item.article_id));
+        
+        const response = await fetch("/api/similar_items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ interactions }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch suggested items");
+        }
+
+        const data = await response.json();
+        // Limit to first 5 suggested items
+        setSuggestedItems(Array.isArray(data) ? data.slice(0, 5) : []);
+      } catch (error) {
+        console.error("Error fetching suggested items:", error);
+        // Fallback to empty array on error
+        setSuggestedItems([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }
+
+    fetchSuggestedItems();
+  }, [cartItems]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -381,23 +163,30 @@ export default function Home() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product, index) => (
-            <ProductCard
-              key={index}
-              image={getProductImageUrl(product.article_id)}
-              title={product.prod_name}
-              price={"10"}
-              onClick={() => handleAddToCart(product)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading products...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product, index) => (
+              <ProductCard
+                key={index}
+                image={getProductImageUrl(product.article_id)}
+                title={product.prod_name}
+                price={"10"}
+                onClick={() => handleAddToCart(product)}
+              />
+            ))}
+          </div>
+        )}
       </main>
       <ShoppingCartSidebar
         cartItems={cartItems}
         suggestedItems={suggestedItems}
         getProductImageUrl={getProductImageUrl}
         onRemoveItem={handleRemoveFromCart}
+        onAddToCart={handleAddToCart}
       />
     </div>
   );

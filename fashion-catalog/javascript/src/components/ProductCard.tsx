@@ -14,7 +14,7 @@ export function ProductCard({ image, title, price, onClick }: ProductCardProps) 
       className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
       onClick={onClick}
     >
-      <CardHeader className="p-0">
+      <CardHeader className="p-0 m-0">
         <div className="relative aspect-square w-full">
           <Image
             src={image}
@@ -28,7 +28,7 @@ export function ProductCard({ image, title, price, onClick }: ProductCardProps) 
         <h3 className="font-semibold text-lg">{title}</h3>
       </CardContent>
       <CardFooter>
-        <p className="text-xl font-bold">{price}</p>
+        <p className="text-xl font-bold">${price}</p>
       </CardFooter>
     </Card>
   );

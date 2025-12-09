@@ -15,6 +15,7 @@ interface ShoppingCartSidebarProps {
   suggestedItems: Product[];
   getProductImageUrl: (item_id: number) => string;
   onRemoveItem: (index: number) => void;
+  onAddToCart: (product: Product) => void;
 }
 
 export function ShoppingCartSidebar({
@@ -22,6 +23,7 @@ export function ShoppingCartSidebar({
   suggestedItems,
   getProductImageUrl,
   onRemoveItem,
+  onAddToCart,
 }: ShoppingCartSidebarProps) {
   return (
     <div className="fixed right-0 top-0 h-full w-80 bg-background border-l shadow-lg overflow-y-auto z-50">
@@ -70,11 +72,15 @@ export function ShoppingCartSidebar({
 
         {/* Suggested Items */}
         {suggestedItems.length > 0 && (
-          <div className="border-t pt-6 mt-auto">
+          <div className="border-t pt-6 mt-auto flex-shrink-0" style={{ maxHeight: "30vh" }}>
             <h3 className="text-lg font-semibold mb-4">Suggested Items</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-y-auto" style={{ maxHeight: "calc(30vh - 3rem)" }}>
               {suggestedItems.map((item, index) => (
-                <Card key={index} className="flex gap-3 p-3 hover:shadow-lg transition-shadow duration-200">
+                <Card 
+                  key={index} 
+                  className="flex gap-3 p-3 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                  onClick={() => onAddToCart(item)}
+                >
                   <div className="relative w-16 h-16 flex-shrink-0">
                     <Image
                       src={getProductImageUrl(item.article_id)}
